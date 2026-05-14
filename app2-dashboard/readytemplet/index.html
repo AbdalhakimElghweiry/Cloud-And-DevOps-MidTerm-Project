@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <!-- Auto-refresh every 10 seconds so the dashboard updates live -->
+  <meta http-equiv="refresh" content="10" />
+  <title>DevOpsHub — Dashboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;700;800&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:      #07090f;
+      --surface: #10131c;
+      --border:  #1e2335;
+      --accent:  #00e5a0;
+      --accent2: #7c6af7;
+      --accent3: #f59e0b;
+      --text:    #e8eaf0;
+      --muted:   #5a6275;
+      --radius:  14px;
+      --mono:    'Space Mono', monospace;
+      --sans:    'Syne', sans-serif;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--sans);
+      min-height: 100vh;
+      padding: 2rem 1rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      background-image:
+        radial-gradient(ellipse at 20% 20%, rgba(0,229,160,0.04) 0%, transparent 60%),
+        radial-gradient(ellipse at 80% 80%, rgba(124,106,247,0.05) 0%, transparent 60%);
+    }
+
+    /* ── Header ──────────────────────────────────────────────────────────── */
+    header {
+      width: 100%;
+      max-width: 860px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 1.25rem;
+      margin-bottom: 2.5rem;
+    }
+
+    .logo { font-size: 1.4rem; font-weight: 800; letter-spacing: -0.5px; }
+    .logo span { color: var(--accent); }
+
+    .header-right { display: flex; align-items: center; gap: 1rem; }
+
+    .badge {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: 0.35rem 0.9rem;
+      font-family: var(--mono);
+      font-size: 0.75rem;
+      color: var(--accent2);
+    }
+
+    .live-indicator {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-family: var(--mono);
+      font-size: 0.72rem;
+      color: var(--accent);
+    }
+
+    .live-dot {
+      width: 7px; height: 7px;
+      background: var(--accent);
+      border-radius: 50%;
+      animation: livePulse 1.5s ease-in-out infinite;
+    }
+
+    @keyframes livePulse {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(0,229,160,0.5); }
+      50%       { box-shadow: 0 0 0 5px rgba(0,229,160,0); }
+    }
+
+    /* ── Page Title ──────────────────────────────────────────────────────── */
+    .page-title {
+      width: 100%;
+      max-width: 860px;
+      margin-bottom: 2rem;
+    }
+
+    .page-title h1 {
+      font-size: 2rem;
+      font-weight: 800;
+      letter-spacing: -1px;
+    }
+
+    .page-title p {
+      color: var(--muted);
+      font-family: var(--mono);
+      font-size: 0.82rem;
+      margin-top: 0.4rem;
+    }
+
+    /* ── Stats Grid ──────────────────────────────────────────────────────── */
+    .stats-grid {
+      width: 100%;
+      max-width: 860px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.25rem;
+      margin-bottom: 2rem;
+    }
+
+    @media (max-width: 600px) { .stats-grid { grid-template-columns: 1fr; } }
+
+    .stat-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.75rem;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .stat-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 3px;
+    }
+
+    .stat-card.messages::before { background: var(--accent); }
+    .stat-card.visits::before   { background: var(--accent2); }
+
+    .stat-label {
+      font-family: var(--mono);
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: var(--muted);
+      margin-bottom: 0.75rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .stat-label .key-tag {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 0.1rem 0.4rem;
+      font-size: 0.68rem;
+    }
+
+    .stat-number {
+      font-size: 3.5rem;
+      font-weight: 800;
+      font-family: var(--mono);
+      line-height: 1;
+      letter-spacing: -2px;
+    }
+
+    .stat-card.messages .stat-number { color: var(--accent); }
+    .stat-card.visits   .stat-number { color: var(--accent2); }
+
+    .stat-sublabel {
+      margin-top: 0.6rem;
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+
+    /* ── Redis Info Card ─────────────────────────────────────────────────── */
+    .info-grid {
+      width: 100%;
+      max-width: 860px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.25rem;
+      margin-bottom: 2rem;
+    }
+
+    @media (max-width: 600px) { .info-grid { grid-template-columns: 1fr; } }
+
+    .info-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.5rem;
+    }
+
+    .info-card h3 {
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--muted);
+      font-family: var(--mono);
+      margin-bottom: 1rem;
+    }
+
+    .redis-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.5rem 0;
+      border-bottom: 1px solid var(--border);
+      font-family: var(--mono);
+      font-size: 0.82rem;
+    }
+
+    .redis-row:last-child { border-bottom: none; }
+    .redis-row .rkey { color: var(--muted); }
+    .redis-row .rval { color: var(--accent3); font-weight: 700; }
+
+    /* ── Recent Messages Preview ─────────────────────────────────────────── */
+    .preview-section { width: 100%; max-width: 860px; }
+
+    .section-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+    }
+
+    .section-title {
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: var(--muted);
+      font-family: var(--mono);
+    }
+
+    .app1-link {
+      font-family: var(--mono);
+      font-size: 0.75rem;
+      color: var(--accent);
+      text-decoration: none;
+      border: 1px solid var(--accent);
+      border-radius: 6px;
+      padding: 0.25rem 0.7rem;
+      transition: background 0.2s;
+    }
+
+    .app1-link:hover { background: rgba(0,229,160,0.1); }
+
+    .preview-item {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0.9rem 1.1rem;
+      margin-bottom: 0.6rem;
+      font-family: var(--mono);
+      font-size: 0.87rem;
+      display: flex;
+      align-items: flex-start;
+      gap: 0.75rem;
+    }
+
+    .preview-item .arrow { color: var(--accent); }
+
+    .empty-state {
+      text-align: center;
+      padding: 2.5rem;
+      color: var(--muted);
+      font-family: var(--mono);
+      font-size: 0.88rem;
+      border: 1px dashed var(--border);
+      border-radius: var(--radius);
+    }
+
+    /* ── Footer ──────────────────────────────────────────────────────────── */
+    footer {
+      margin-top: 3rem;
+      color: var(--muted);
+      font-size: 0.73rem;
+      font-family: var(--mono);
+      text-align: center;
+      line-height: 1.8;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ── Header ─────────────────────────────────────────────────────────── -->
+  <header>
+    <div class="logo">DevOps<span>Hub</span></div>
+    <div class="header-right">
+      <div class="live-indicator"><span class="live-dot"></span> LIVE · auto-refresh 10s</div>
+      <span class="badge">● App 2 · Dashboard</span>
+    </div>
+  </header>
+
+  <!-- ── Page Title ─────────────────────────────────────────────────────── -->
+  <div class="page-title">
+    <h1>System Dashboard</h1>
+    <p>Reading live data from shared Redis database · All values update on every page load</p>
+  </div>
+
+  <!-- ── Stats Grid ─────────────────────────────────────────────────────── -->
+  <div class="stats-grid">
+    <div class="stat-card messages">
+      <div class="stat-label">
+        Total Messages
+        <span class="key-tag">LLEN messages</span>
+      </div>
+      <div class="stat-number">{{ message_count }}</div>
+      <p class="stat-sublabel">Messages stored in Redis list</p>
+    </div>
+
+    <div class="stat-card visits">
+      <div class="stat-label">
+        Total Page Visits
+        <span class="key-tag">GET visit_count</span>
+      </div>
+      <div class="stat-number">{{ visit_count }}</div>
+      <p class="stat-sublabel">Visits tracked by App 1</p>
+    </div>
+  </div>
+
+  <!-- ── Redis Info ──────────────────────────────────────────────────────── -->
+  <div class="info-grid">
+    <div class="info-card">
+      <h3>Redis Key Map</h3>
+      <div class="redis-row">
+        <span class="rkey">Key</span>
+        <span class="rkey">Type</span>
+        <span class="rval">Value</span>
+      </div>
+      <div class="redis-row">
+        <span class="rkey">messages</span>
+        <span class="rkey">LIST</span>
+        <span class="rval">{{ message_count }} items</span>
+      </div>
+      <div class="redis-row">
+        <span class="rkey">visit_count</span>
+        <span class="rkey">STRING</span>
+        <span class="rval">{{ visit_count }}</span>
+      </div>
+    </div>
+
+    <div class="info-card">
+      <h3>Architecture</h3>
+      <div class="redis-row">
+        <span class="rkey">App 1 (producer)</span>
+        <span class="rval">:5001</span>
+      </div>
+      <div class="redis-row">
+        <span class="rkey">App 2 (observer)</span>
+        <span class="rval">:5002</span>
+      </div>
+      <div class="redis-row">
+        <span class="rkey">Redis (shared DB)</span>
+        <span class="rval">:6379</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Recent Messages Preview ────────────────────────────────────────── -->
+  <div class="preview-section">
+    <div class="section-header">
+      <span class="section-title">Recent Messages Preview (last 5)</span>
+      <a class="app1-link" href="http://localhost:5001" target="_blank">→ Go to App 1</a>
+    </div>
+
+    {% if recent_messages %}
+      {% for msg in recent_messages %}
+        <div class="preview-item">
+          <span class="arrow">▶</span>
+          <span>{{ msg }}</span>
+        </div>
+      {% endfor %}
+    {% else %}
+      <div class="empty-state">
+        No messages yet. Visit App 1 to submit some!
+      </div>
+    {% endif %}
+  </div>
+
+  <footer>
+    App 2 — Dashboard &nbsp;·&nbsp; Port 5002 &nbsp;·&nbsp;
+    Redis Host: redis:6379 &nbsp;·&nbsp;
+    Data source: Redis LIST (messages) + STRING (visit_count)<br/>
+    Page auto-refreshes every 10 seconds. Last load: read-only, no writes to Redis.
+  </footer>
+
+</body>
+</html>

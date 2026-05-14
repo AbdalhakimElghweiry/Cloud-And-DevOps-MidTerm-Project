@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DevOpsHub — Message Collector</title>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;700;800&display=swap" rel="stylesheet" />
+  <style>
+    /* ── Reset & Base ───────────────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:        #0d0f14;
+      --surface:   #161922;
+      --border:    #252a36;
+      --accent:    #00e5a0;
+      --accent2:   #7c6af7;
+      --text:      #e8eaf0;
+      --muted:     #6b7280;
+      --danger:    #f87171;
+      --radius:    12px;
+      --mono:      'Space Mono', monospace;
+      --sans:      'Syne', sans-serif;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--sans);
+      min-height: 100vh;
+      padding: 2rem 1rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    /* ── Header ─────────────────────────────────────────────────────────── */
+    header {
+      width: 100%;
+      max-width: 720px;
+      margin-bottom: 2.5rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 1.25rem;
+    }
+
+    .logo {
+      font-size: 1.4rem;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+    }
+
+    .logo span { color: var(--accent); }
+
+    .badge {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: 0.35rem 0.9rem;
+      font-family: var(--mono);
+      font-size: 0.78rem;
+      color: var(--accent);
+      white-space: nowrap;
+    }
+
+    /* ── Visit Counter Card ──────────────────────────────────────────────── */
+    .visit-card {
+      width: 100%;
+      max-width: 720px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--accent2);
+      border-radius: var(--radius);
+      padding: 1.25rem 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+
+    .visit-icon {
+      font-size: 1.8rem;
+      line-height: 1;
+    }
+
+    .visit-info p { font-size: 0.78rem; color: var(--muted); margin-bottom: 0.2rem; text-transform: uppercase; letter-spacing: 1px; font-family: var(--mono); }
+    .visit-info strong { font-size: 2rem; font-weight: 800; color: var(--accent2); font-family: var(--mono); }
+
+    /* ── Form Card ───────────────────────────────────────────────────────── */
+    .card {
+      width: 100%;
+      max-width: 720px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 2rem;
+      margin-bottom: 2rem;
+    }
+
+    .card h2 {
+      font-size: 1.1rem;
+      font-weight: 700;
+      margin-bottom: 1.25rem;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+
+    .card h2 .dot {
+      width: 8px; height: 8px;
+      background: var(--accent);
+      border-radius: 50%;
+      display: inline-block;
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50%       { opacity: 0.5; transform: scale(0.8); }
+    }
+
+    textarea {
+      width: 100%;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      font-family: var(--mono);
+      font-size: 0.9rem;
+      padding: 0.9rem 1rem;
+      resize: vertical;
+      min-height: 120px;
+      transition: border-color 0.2s;
+      outline: none;
+    }
+
+    textarea:focus { border-color: var(--accent); }
+    textarea::placeholder { color: var(--muted); }
+
+    .error-msg {
+      color: var(--danger);
+      font-size: 0.82rem;
+      font-family: var(--mono);
+      margin-top: 0.5rem;
+    }
+
+    button[type="submit"] {
+      margin-top: 1rem;
+      background: var(--accent);
+      color: #0d0f14;
+      border: none;
+      border-radius: 8px;
+      padding: 0.75rem 2rem;
+      font-family: var(--sans);
+      font-weight: 700;
+      font-size: 0.95rem;
+      cursor: pointer;
+      transition: opacity 0.2s, transform 0.1s;
+    }
+
+    button[type="submit"]:hover  { opacity: 0.88; }
+    button[type="submit"]:active { transform: scale(0.97); }
+
+    /* ── Messages Log ────────────────────────────────────────────────────── */
+    .messages-section { width: 100%; max-width: 720px; }
+
+    .section-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+    }
+
+    .section-title {
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: var(--muted);
+      font-family: var(--mono);
+    }
+
+    .count-chip {
+      background: var(--accent);
+      color: #0d0f14;
+      font-family: var(--mono);
+      font-size: 0.75rem;
+      font-weight: 700;
+      padding: 0.2rem 0.6rem;
+      border-radius: 999px;
+    }
+
+    .message-item {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0.9rem 1.1rem;
+      margin-bottom: 0.6rem;
+      font-family: var(--mono);
+      font-size: 0.88rem;
+      line-height: 1.6;
+      display: flex;
+      align-items: flex-start;
+      gap: 0.8rem;
+      animation: slideIn 0.3s ease;
+    }
+
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateY(-6px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .msg-index {
+      color: var(--muted);
+      font-size: 0.75rem;
+      min-width: 24px;
+      padding-top: 2px;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 3rem 1rem;
+      color: var(--muted);
+      font-family: var(--mono);
+      font-size: 0.9rem;
+      border: 1px dashed var(--border);
+      border-radius: var(--radius);
+    }
+
+    .empty-state .icon { font-size: 2.5rem; margin-bottom: 0.75rem; display: block; }
+
+    /* ── Footer ──────────────────────────────────────────────────────────── */
+    footer {
+      margin-top: 3rem;
+      color: var(--muted);
+      font-size: 0.75rem;
+      font-family: var(--mono);
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ── Header ─────────────────────────────────────────────────────────── -->
+  <header>
+    <div class="logo">DevOps<span>Hub</span></div>
+    <span class="badge">● App 1 · Message Collector</span>
+  </header>
+
+  <!-- ── Visit Counter ──────────────────────────────────────────────────── -->
+  <div class="visit-card">
+    <div class="visit-icon">👁</div>
+    <div class="visit-info">
+      <p>Page Visits (stored in Redis)</p>
+      <strong>{{ visit_count }}</strong>
+    </div>
+  </div>
+
+  <!-- ── Submit Form ────────────────────────────────────────────────────── -->
+  <div class="card">
+    <h2><span class="dot"></span> Submit a Message</h2>
+
+    <form method="POST" action="/">
+      <textarea
+        name="message"
+        placeholder="Type your feedback, suggestion, or comment here…"
+        required
+      ></textarea>
+
+      {% if error_message %}
+        <p class="error-msg">⚠ {{ error_message }}</p>
+      {% endif %}
+
+      <button type="submit">Send Message →</button>
+    </form>
+  </div>
+
+  <!-- ── Messages Log ───────────────────────────────────────────────────── -->
+  <div class="messages-section">
+    <div class="section-header">
+      <span class="section-title">Redis Message Log</span>
+      {% if messages %}
+        <span class="count-chip">{{ messages | length }}</span>
+      {% endif %}
+    </div>
+
+    {% if messages %}
+      {% for msg in messages | reverse %}
+        <div class="message-item">
+          <span class="msg-index">#{{ messages | length - loop.index0 }}</span>
+          <span>{{ msg }}</span>
+        </div>
+      {% endfor %}
+    {% else %}
+      <div class="empty-state">
+        <span class="icon">📭</span>
+        No messages yet. Be the first to submit one!
+      </div>
+    {% endif %}
+  </div>
+
+  <footer>
+    Redis Key: <strong>messages</strong> (LIST) &nbsp;·&nbsp;
+    Redis Key: <strong>visit_count</strong> (STRING) &nbsp;·&nbsp;
+    App 1 running on port 5001
+  </footer>
+
+</body>
+</html>
