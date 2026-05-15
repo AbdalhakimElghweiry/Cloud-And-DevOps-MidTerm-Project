@@ -1,31 +1,19 @@
+version: '3.8'
+
 services:
 
-
   redis:
- 
     image: redis:7-alpine
-
-
     container_name: devopshub-redis
-
     command: redis-server /usr/local/etc/redis/redis.conf
-
-
     ports:
       - "6379:6379"
-
-
     volumes:
       - redis-data:/data
       - ./redis/redis.conf:/usr/local/etc/redis/redis.conf:ro
-
-
     networks:
       - devopshub-net
-
-
     restart: unless-stopped
-
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 10s
@@ -35,63 +23,39 @@ services:
 
   app1:
     build:
-      context: ./app1-massage-collector
+      context: ./app1
       dockerfile: Dockerfile
-
-
     image: devopshub-app1:latest
-
-
     container_name: devopshub-app1
-
-
     ports:
-      - "5001:5000"
-
-
+      - "5001:80"
     environment:
       - REDIS_HOST=redis
       - REDIS_PORT=6379
-
-
     depends_on:
       redis:
         condition: service_healthy
-
-
     networks:
       - devopshub-net
-
-
     restart: unless-stopped
 
   app2:
     build:
-      context: ./app2-dashboard
+      context: ./app2
       dockerfile: Dockerfile
-
     image: devopshub-app2:latest
-
     container_name: devopshub-app2
-
-
     ports:
-      - "5002:5000"
-
+      - "5002:80"
     environment:
       - REDIS_HOST=redis
       - REDIS_PORT=6379
-
     depends_on:
       redis:
         condition: service_healthy
-
     networks:
       - devopshub-net
-
     restart: unless-stopped
-
-
 
 volumes:
   redis-data:
@@ -99,5 +63,4 @@ volumes:
 
 networks:
   devopshub-net:
-
     driver: bridge
