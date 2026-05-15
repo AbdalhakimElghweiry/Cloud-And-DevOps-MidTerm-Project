@@ -1,33 +1,24 @@
 <?php
-// Connect to Redis using the SERVICE NAME "redis" (not localhost)
-// In Docker Compose, containers find each other by service name
+
 $redis = new Redis();
 $redis->connect('redis', 6379);
 
-// Every time this page loads, increment the visit counter
-// INCR is atomic — safe even if 100 users load at the same time
 $redis->incr('visit_count');
 $visitCount = $redis->get('visit_count');
 
-// If the form was submitted (POST request), save the message
 $error = '';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $message = trim($_POST['message'] ?? '');
     if ($message !== '') {
-        // RPUSH adds the message to the RIGHT end of the Redis list
-        // This keeps messages in chronological order
         $redis->rPush('messages', $message);
-        // Redirect after POST to prevent duplicate submissions on refresh
         header('Location: /');
         exit;
     } else {
         $error = 'Message cannot be empty!';
     }
 }
-
-// Get all messages from Redis list (0 = start, -1 = end means ALL)
 $messages = $redis->lRange('messages', 0, -1);
-$messages = array_reverse($messages); // Show newest first
+$messages = array_reverse($messages); 
 ?>
 <!DOCTYPE html>
 <html lang="en">

@@ -1,26 +1,19 @@
 <?php
-// Connect to the SAME Redis instance as App 1
-// "redis" is the service name — Docker resolves it to the Redis container IP
+
 $redis = new Redis();
 $redis->connect('redis', 6379);
 
-// Read total message count using LLEN (List LENgth)
-// Returns 0 if the key doesn't exist yet — safe default
 $messageCount = $redis->lLen('messages');
 
-// Read visit count — GET returns null if key doesn't exist
 $visitCount = (int)($redis->get('visit_count') ?? 0);
-
-// Get the last 5 messages for a preview (index -5 to -1 = last 5 items)
 $recentMessages = $redis->lRange('messages', -5, -1);
-$recentMessages = array_reverse($recentMessages); // newest first
+$recentMessages = array_reverse($recentMessages); 
 ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <!-- Auto-refresh every 10 seconds so stats stay live -->
   <meta http-equiv="refresh" content="10">
   <title>DevOpsHub — Dashboard</title>
   <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;700;800&display=swap" rel="stylesheet">
